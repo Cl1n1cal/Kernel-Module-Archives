@@ -1,0 +1,112 @@
+#include "main.h"
+
+#define SUCCESS 0
+#define DEVICE_NAME "hackme"
+#define BUF_LEN 100
+
+static int Major;
+static int Device_Open = 0;
+
+/**
+ * Ensure atomicity and prevent race conditions
+ */
+enum { 
+    CDEV_NOT_USED, 
+    CDEV_EXCLUSIVE_OPEN, 
+}; 
+
+/* Is device open? Used to prevent multiple access to device */ 
+static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
+
+static struct class *cls; 
+
+static struct file_operations fops = {
+    .read = device_read,
+    .write = device_write,
+    .open = device_open,
+    .release = device_release
+};
+
+/**
+ * Called when the module is loaded
+ */
+static int hackme_init(void)
+{
+    Major = register_chrdev(0, DEVICE_NAME, &fops);
+
+    if (Major < 0) {
+        pr_alert("Registrering char device failed\n");
+        return Major;
+    }
+
+    pr_info("Device assigned major number: %d\n", Major);
+
+    #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0) 
+        cls = class_create(DEVICE_NAME); 
+    #else 
+        cls = class_create(THIS_MODULE, DEVICE_NAME); 
+    #endif 
+        device_create(cls, NULL, MKDEV(Major, 0), NULL, DEVICE_NAME); 
+ 
+    pr_info("Device created on /dev/%s\n", DEVICE_NAME); 
+ 
+
+    return SUCCESS;
+}
+
+/**
+ * Called when the module is unloaded
+ */
+static void hackme_exit(void)
+{
+    unregister_chrdev(Major, DEVICE_NAME);
+    pr_info("Unregistered kernel module\n");
+}
+
+/**
+ * Called when a process tries to open the device file
+ */
+static int device_open(struct inode *inode, struct file *file)
+{
+    if (Device_Open) {
+        return -EBUSY;
+    }
+
+    Device_Open++;
+    try_module_get(THIS_MODULE);
+    return SUCCESS;
+}
+
+/**
+ * Called when a process releases the device
+ */
+
+/**
+ * Called when a process reads from the device
+ */
+static ssize_t device_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset)
+{
+    size_t bytes_read = 0;
+    char vuln_buf[BUF_LEN];
+
+    bytes_read = copy_to_user(buffer, vuln_buf, length);
+
+    return bytes_read;
+}
+
+/**
+ * Called when a process writes to the device
+ */
+
+static ssize_t device_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset)
+{
+    size_t bytes_written = 0;
+    char vuln_buf[BUF_LEN];
+
+    bytes_written = copy_from_user(vuln_buf, buffer, length);
+
+    return bytes_written;
+}
+
+module_init(hackme_init);
+module_exit(hackme_exit);
