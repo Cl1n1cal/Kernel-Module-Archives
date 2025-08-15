@@ -20,10 +20,10 @@ static atomic_t already_open = ATOMIC_INIT(CDEV_NOT_USED);
 static struct class *cls; 
 
 static struct file_operations fops = {
-    .read = device_read,
-    .write = device_write,
-    .open = device_open,
-    .release = device_release
+    .read = hackme_read,
+    .write = hackme_write,
+    .open = hackme_open,
+    .release = hackme_release
 };
 
 /**
@@ -73,7 +73,7 @@ static void hackme_exit(void)
 /**
  * Called when a process tries to open the device file
  */
-static int device_open(struct inode *inode, struct file *file)
+static int hackme_open(struct inode *inode, struct file *file)
 {
     if (atomic_cmpxchg(&already_open, CDEV_NOT_USED, CDEV_EXCLUSIVE_OPEN)) {
         return -EBUSY;
@@ -87,7 +87,7 @@ static int device_open(struct inode *inode, struct file *file)
 /**
  * Called when a process releases the device
  */
-static int device_release(struct inode *inode, struct file *file)
+static int hackme_release(struct inode *inode, struct file *file)
 {
     atomic_set(&already_open, CDEV_NOT_USED); 
     return 0;
@@ -96,7 +96,7 @@ static int device_release(struct inode *inode, struct file *file)
 /**
  * Called when a process reads from the device
  */
-static ssize_t device_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset)
+static ssize_t hackme_read(struct file *filp, char __user *buffer, size_t length, loff_t *offset)
 {
     size_t bytes_read = 0;
     char vuln_buf[BUF_LEN];
@@ -109,7 +109,7 @@ static ssize_t device_read(struct file *filp, char __user *buffer, size_t length
 /**
  * Called when a process writes to the device
  */
-static ssize_t device_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset)
+static ssize_t hackme_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset)
 {
     size_t bytes_written = 0;
     char vuln_buf[BUF_LEN];

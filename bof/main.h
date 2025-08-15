@@ -10,7 +10,7 @@
 #include <linux/types.h>
 #include <linux/version.h>
 
-static int device_open(struct inode *, struct file *);
-static int device_release(struct inode *, struct file *);
-static ssize_t device_read(struct file *filp,__user char *, size_t, loff_t *);
-static ssize_t device_write(struct file *filp,const __user char *, size_t, loff_t *);
+static int hackme_open(struct inode *, struct file *);
+static int hackme_release(struct inode *, struct file *);
+static ssize_t hackme_read(struct file *filp,__user char *, size_t, loff_t *);
+static ssize_t hackme_write(struct file *filp,const __user char *, size_t, loff_t *);
