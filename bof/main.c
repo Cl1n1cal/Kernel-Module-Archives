@@ -5,7 +5,6 @@
 #define BUF_LEN 100
 
 static int Major;
-static int Device_Open = 0;
 
 /**
  * Ensure atomicity and prevent race conditions
@@ -59,27 +58,40 @@ static int hackme_init(void)
  */
 static void hackme_exit(void)
 {
+    device_destroy(cls, MKDEV(Major, 0));
+    class_destroy(cls);
+
+    /**
+     * Unregister the device
+     */
     unregister_chrdev(Major, DEVICE_NAME);
     pr_info("Unregistered kernel module\n");
 }
+
+/* Methods */
 
 /**
  * Called when a process tries to open the device file
  */
 static int device_open(struct inode *inode, struct file *file)
 {
-    if (Device_Open) {
+    if (atomic_cmpxchg(&already_open, CDEV_NOT_USED, CDEV_EXCLUSIVE_OPEN)) {
         return -EBUSY;
     }
 
-    Device_Open++;
-    try_module_get(THIS_MODULE);
-    return SUCCESS;
+    pr_info("Device opened\n");
+
+    return 0;
 }
 
 /**
  * Called when a process releases the device
  */
+static int device_release(struct inode *inode, struct file *file)
+{
+    atomic_set(&already_open, CDEV_NOT_USED); 
+    return 0;
+}
 
 /**
  * Called when a process reads from the device
@@ -97,7 +109,6 @@ static ssize_t device_read(struct file *filp, char __user *buffer, size_t length
 /**
  * Called when a process writes to the device
  */
-
 static ssize_t device_write(struct file *filp, const char __user *buffer, size_t length, loff_t *offset)
 {
     size_t bytes_written = 0;
@@ -110,3 +121,5 @@ static ssize_t device_write(struct file *filp, const char __user *buffer, size_t
 
 module_init(hackme_init);
 module_exit(hackme_exit);
+
+MODULE_LICENSE("GPL");
