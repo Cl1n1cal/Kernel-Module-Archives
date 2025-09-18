@@ -101,7 +101,7 @@ static ssize_t hackme_read(struct file *filp, char __user *buffer, size_t length
     size_t bytes_read = 0;
     char vuln_buf[BUF_LEN];
 
-    bytes_read = copy_to_user(buffer, vuln_buf, length);
+    bytes_read = raw_copy_to_user(buffer, vuln_buf, length);
 
     return bytes_read;
 }
@@ -114,7 +114,7 @@ static ssize_t hackme_write(struct file *filp, const char __user *buffer, size_t
     size_t bytes_written = 0;
     char vuln_buf[BUF_LEN];
 
-    bytes_written = copy_from_user(vuln_buf, buffer, length);
+    bytes_written = raw_copy_from_user(vuln_buf, buffer, length);
 
     return bytes_written;
 }

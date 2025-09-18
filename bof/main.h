@@ -13,4 +13,4 @@
 static int hackme_open(struct inode *, struct file *);
 static int hackme_release(struct inode *, struct file *);
 static ssize_t hackme_read(struct file *filp,__user char *, size_t, loff_t *);
-static ssize_t hackme_write(struct file *filp,const __user char *, size_t, loff_t *);
+static ssize_t hackme_write(struct file *filp, const __user char *, size_t, loff_t *);
