@@ -1,6 +1,8 @@
 #include <windows.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "utils.h"
+
 
 #define DRIVER_PREFIX "UNIV"
 
@@ -16,20 +18,43 @@ int error(const char* message)
 
 int main(void)
 {
-	char buf[0x50];
-	memset(buf, 0x41, 0x50);
+	uint32_t choice;
+	int32_t c;
+	// Set stdin, stdout, stderr unbuffered
+	setup();
 
 	puts("Opening handle to driver");
-
 	HANDLE hDevice = CreateFile(L"\\\\.\\universal-driver", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hDevice == INVALID_HANDLE_VALUE) {
 		return error("Failed to open device");
 	}
 
-	DeviceIoControl(hDevice, WRITE_BUF, NULL, 0, buf, sizeof(buf), NULL, NULL);
+	while (1) {
+		print_menu();
+		scanf("%u", &choice);
 
-	puts("Printing buf content:");
-	printf("%.*s\n", sizeof(buf), buf);
+		while ((c = getchar()) != '\n' && c != EOF) {}
+
+		switch (choice) {
+		case 1:
+
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		case 6:
+			break;
+
+		default:
+			puts("Invalid option");
+			break;
+		}
+	}
 
 
 }

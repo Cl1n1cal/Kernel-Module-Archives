@@ -1,7 +1,7 @@
 #include "utils.h"
 #include <stdio.h>
 
-void menu(void)
+void print_menu(void)
 {
 	puts("Menu:");
 	puts("1: Write to the driver buffer");
@@ -10,7 +10,11 @@ void menu(void)
 	puts("4: Free kernel memory chunk");
 	puts("5: Edit kernel memory chunk");
 	puts("6: Print kernel memory chunk");
+}
 
-	getchar();
-
+void setup(void)
+{
+	setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
 }
